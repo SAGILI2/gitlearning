@@ -1,35 +1,80 @@
-import base64
-import qrcode
+Alright, let's delve deeper into the "Executing Custom Rules" section to provide an expanded flow suitable for a flowchart:
 
-MAX_QR_SIZE = 2953  # Maximum characters for a QR code with error correction level Q
+---
 
-def encode_zip_to_base64(zip_filepath):
-    with open(zip_filepath, 'rb') as f:
-        zip_data = f.read()
-        return base64.b64encode(zip_data).decode('utf-8')
+**Executing Custom Rules**:
 
-def split_data(data, chunk_size):
-    return [data[i:i+chunk_size] for i in range(0, len(data), chunk_size)]
+1. **Identify Custom Rule**:
+   - Check the rule details to see if there's an associated custom Python file (`CSTM_PYTHON_FILE_NM`).
 
-def generate_qr_codes(data):
-    chunks = split_data(data, MAX_QR_SIZE)
-    qr_images = []
-    
-    for index, chunk in enumerate(chunks, start=1):
-        img = qrcode.make(chunk)
-        img.save(f'qr_{index}.png')
-        qr_images.append(f'qr_{index}.png')
-        
-    return qr_images
+2. **Import Custom Rule Script**:
+   - Remove the `.py` extension from the custom Python file name (if present).
+   - Use Python's `importlib` to dynamically import the custom rule's Python file as a module.
+   - Extract the `dq_engine_custom` function from the imported module. This function contains the custom rule logic.
 
-def main():
-    zip_filepath = input("Enter path to the zip file: ")
-    encoded_string = encode_zip_to_base64(zip_filepath)
-    
-    qr_files = generate_qr_codes(encoded_string)
-    print(f"Generated {len(qr_files)} QR codes:")
-    for filename in qr_files:
-        print(filename)
+3. **Execute Custom Rule**:
+   - Call the `dq_engine_custom` function with necessary parameters, such as rule details and connection configurations.
+   - This function fetches and processes data based on custom logic and returns two main pieces of information:
+     - `rule_exceptions_df`: A DataFrame containing the exceptions or issues identified by the custom rule.
+     - `scope_count`: A count indicating the scope or amount of data that was checked.
 
-if __name__ == "__main__":
-    main()
+4. **Custom Scope Calculation**:
+   - If the custom rule does not provide a `scope_count`, calculate it using the `calculate_scope` function or another method if necessary.
+
+5. **Handle Rule Exceptions**:
+   - Based on the exceptions DataFrame (`rule_exceptions_df`):
+     - If there are exceptions:
+       5.1. Create a DataFrame (`rule_obj`) with details about the rule.
+       5.2. Store the exceptions in the database using the `store_exceptions` function.
+       5.3. Print a success message indicating that the rule has been executed.
+       5.4. Log the status of the rule execution along with the number of exceptions and the scope count using the `log_rule_status` function.
+       5.5. Trigger any post-rule execution jobs (e.g., notifications or additional processes) using the `post_jobs` function.
+     - If there are no exceptions:
+       - Print a success message indicating that no exceptions were found.
+       - Log the successful execution of the rule using the `log_rule_status` function.
+
+6. **Completion**:
+   - Print a message to indicate that the processing for the given rule ID is done.
+
+
+Alright, let's focus specifically on the `dq_engine_custom` function from the custom Python file you provided and delve deeper into how it fetches, processes the data, and returns the exceptions and scope count:
+
+---
+
+**Function: `dq_engine_custom`**:
+
+1. **Extracting Rule Details**:
+   - Extract specific details from the `rule_details` parameter, such as the rule ID (`rule_id`) and ingestion code (`ingestion_cd`).
+
+2. **Data Retrieval**:
+   - The `get_rule_query_response_data` function is called with specific parameters including a predefined query (`json_list_RuleID_2113`).
+   - This function fetches data based on the custom rule's requirements and returns a DataFrame (`df_2113`) or a response object.
+
+3. **Data Processing**:
+   - If the fetched data (`df_2113`) is a DataFrame:
+     - Two subsets of data are created:
+       - `query_response_2113_1`: Contains records with null values in the `dnsName` column.
+       - `query_response_2113_2`: Contains records where the `dnsName` column values match a specific pattern (starting with a lowercase letter).
+     - The main data (`df_2113`) is merged with `query_response_2113_2` to identify records present in the main data but absent in `query_response_2113_2`.
+     - Extract the exception records (`response_2113_excpn`) and drop duplicates based on a unique ID (`OSI:invNo`).
+     - The columns are renamed to ensure they align with the expected output format, resulting in the `df_excp_rcd_final` DataFrame.
+
+4. **Handling Non-DataFrame Responses**:
+   - If the fetched data (`df_2113`) is not a DataFrame but a response object (indicating an error or unexpected response), an error message is printed, and an exception is raised.
+
+5. **Custom Scope Calculation**:
+   - The `calculate_custom_scope` function is called to compute a custom scope for the data. Currently, this function is a placeholder and simply returns `None`. If there's an error during this computation, the error is printed and `scope_count` is set to `None`.
+
+6. **Error Handling**:
+   - If any exception is encountered during the data processing or custom scope calculation steps, an error message is printed.
+
+7. **Returning Processed Data and Scope**:
+   - The function returns the final exception records DataFrame (`df_excp_rcd_final`) and the calculated scope count (`scope_count`).
+
+---
+
+This breakdown provides a detailed understanding of the `dq_engine_custom` function's logic and flow, focusing on how it processes data based on the custom rule's requirements and then identifies exceptions. It should help in creating a more detailed segment of the flowchart for this specific custom rule processing step.
+
+---
+
+This expanded flow provides a detailed view of the custom rule execution process, laying out the sequence of actions and decisions that take place when the `dq_engine` function encounters a custom rule. This should be suitable for creating a detailed flowchart segment specifically for custom rules.
