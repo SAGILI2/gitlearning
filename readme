@@ -1,29 +1,35 @@
-from sqlalchemy.orm import aliased
+import base64
+import qrcode
 
-@staticmethod
-def get_profiling_results(profile_id):
-    max_run_id = execute_raw_oracle(MAX_RUN_ID.format(profile_id=profile_id))
-    if max_run_id := max_run_id.first()[0]:
-        
-        subquery = (
-            db.session.query(ProfileCategoricalColStatModel)
-            .filter(ProfileCategoricalColStatModel.profile_id == profile_id)
-            .limit(10)
-            .subquery()
-        )
-        
-        alias = aliased(ProfileCategoricalColStatModel, subquery)
+MAX_QR_SIZE = 2953  # Maximum characters for a QR code with error correction level Q
 
-        results = (
-            ProfileRsltsMastModel.query
-            .join(alias, ProfileRsltsMastModel.profile_id == alias.profile_id)
-            .filter(
-                ProfileRsltsMastModel.profile_id == profile_id,
-                ProfileRsltsMastModel.run_id == max_run_id
-            )
-            .all()
-        )
+def encode_zip_to_base64(zip_filepath):
+    with open(zip_filepath, 'rb') as f:
+        zip_data = f.read()
+        return base64.b64encode(zip_data).decode('utf-8')
+
+def split_data(data, chunk_size):
+    return [data[i:i+chunk_size] for i in range(0, len(data), chunk_size)]
+
+def generate_qr_codes(data):
+    chunks = split_data(data, MAX_QR_SIZE)
+    qr_images = []
+    
+    for index, chunk in enumerate(chunks, start=1):
+        img = qrcode.make(chunk)
+        img.save(f'qr_{index}.png')
+        qr_images.append(f'qr_{index}.png')
         
-        return results
-    else:
-        return None
+    return qr_images
+
+def main():
+    zip_filepath = input("Enter path to the zip file: ")
+    encoded_string = encode_zip_to_base64(zip_filepath)
+    
+    qr_files = generate_qr_codes(encoded_string)
+    print(f"Generated {len(qr_files)} QR codes:")
+    for filename in qr_files:
+        print(filename)
+
+if __name__ == "__main__":
+    main()
