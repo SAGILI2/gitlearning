@@ -1,25 +1,3 @@
-@staticmethod
-def get_profiling_results(profile_id):
-    max_run_id = execute_raw_oracle(MAX_RUN_ID.format(profile_id=profile_id))
-    if max_run_id := max_run_id.first()[0]:
-        result = (
-            db.session.query(ProfileRsltsMastModel, ProfileDetailsMasterModel, DqaasProcRunSumModel.strt_tm, DqaasCnsmrApplModel.appl_nm, DqaasCnsmrApplModel.appl_id)
-            .join(ProfileDetailsMasterModel, ProfileDetailsMasterModel.profile_id == ProfileRsltsMastModel.profile_id)
-            .join(DqaasCnsmrApplModel, DqaasCnsmrApplModel.CNSMR_INGESTION_ID == ProfileDetailsMasterModel.cnsmr_ingestion_id)
-            .join(DqaasProcRunSumModel, DqaasProcRunSumModel.run_id == ProfileRsltsMastModel.run_id)
-            .filter(
-                ProfileRsltsMastModel.profile_id == profile_id,
-                ProfileRsltsMastModel.run_id == max_run_id
-            )
-            .all()
-        )
-        return result
-    else:
-        return None
-
-
-
-
 class ProfileDetailsMasterSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = ProfileDetailsMasterModel
@@ -27,37 +5,11 @@ class ProfileDetailsMasterSchema(ma.SQLAlchemyAutoSchema):
         load_instance = True
         transient = True
 
-    appl_nm = fields.String()
-    appl_id = fields.Integer()
-
-
-class ProfileDetailsMasterSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = ProfileDetailsMasterModel
-        include_fk = True
-        load_instance = True
-        transient = True
-
-    appl_nm = fields.Method("get_appl_nm")
-    appl_id = fields.Method("get_appl_id")
+    appl_nm = ma.Method("get_appl_nm")
+    appl_id = ma.Method("get_appl_id")
 
     def get_appl_nm(self, obj):
         return obj.dqaas_cnsmr_appl_info.appl_nm if obj.dqaas_cnsmr_appl_info else None
 
     def get_appl_id(self, obj):
         return obj.dqaas_cnsmr_appl_info.appl_id if obj.dqaas_cnsmr_appl_info else None
-
-
-from marshmallow import fields
-
-class ProfileDetailsMasterSchema(ma.SQLAlchemyAutoSchema):
-    class Meta:
-        model = ProfileDetailsMasterModel
-        include_fk = True
-        load_instance = True
-        transient = True
-
-    appl_nm = fields.Function(lambda obj: obj.dqaas_cnsmr_appl_info.appl_nm if obj.dqaas_cnsmr_appl_info else None)
-    appl_id = fields.Function(lambda obj: obj.dqaas_cnsmr_appl_info.appl_id if obj.dqaas_cnsmr_appl_info else None)
-
-
