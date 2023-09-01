@@ -47,3 +47,17 @@ class ProfileDetailsMasterSchema(ma.SQLAlchemyAutoSchema):
     def get_appl_id(self, obj):
         return obj.dqaas_cnsmr_appl_info.appl_id if obj.dqaas_cnsmr_appl_info else None
 
+
+from marshmallow import fields
+
+class ProfileDetailsMasterSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = ProfileDetailsMasterModel
+        include_fk = True
+        load_instance = True
+        transient = True
+
+    appl_nm = fields.Function(lambda obj: obj.dqaas_cnsmr_appl_info.appl_nm if obj.dqaas_cnsmr_appl_info else None)
+    appl_id = fields.Function(lambda obj: obj.dqaas_cnsmr_appl_info.appl_id if obj.dqaas_cnsmr_appl_info else None)
+
+
