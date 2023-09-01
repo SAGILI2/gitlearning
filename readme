@@ -1,43 +1,52 @@
-Certainly! I'll break down the custom rule Python code you've provided into a step-by-step flow, suitable for creating a flowchart:
+Alright, let's break down the logic for non-custom rules within the `dq_engine` function. This will help you understand how non-custom rules are processed and checked:
 
-1. **Initialization**:
-   - A JSON structure (`json_list_RuleID_2113`) is defined. This structure appears to define a query, with filters and other configurations, to fetch specific data from a source. 
+---
 
-2. **Function: `calculate_custom_scope`**:
-   - As its name suggests, this function would be used to calculate a custom scope. Currently, it's a placeholder and just returns `None`.
+**Executing Non-Custom Rules**:
 
-3. **Function: `dq_engine_custom`**:
-   - This is the main custom rule function that gets executed when the `dq_engine` encounters a custom rule.
+1. **Data Retrieval**:
+   - Use the `get_rule_query_response_data` method to fetch the data based on the rule's query. The fetched data will be stored in `rule_query_response_df`.
 
-   3.1 **Extracting Rule Details**:
-      - The function extracts details like `rule_id` and `ingestion_cd` from the `rule_details` argument.
+2. **Data Verification**:
+   - Check if the returned data (`rule_query_response_df`) is a DataFrame. 
+   
+3. **Handle No Data or Unexpected Response**:
+   - If the response indicates that no data exists or the DataFrame is empty, log a message that no data was found for the rule's query and continue to the next rule.
+   
+4. **Attribute Formatting**:
+   - Verify if the key attribute name (`OBJ_UNQ_ATTR_NM`) from the rule matches a column in the fetched data.
+   - If not, update the key attribute name in the rule details and in the database.
 
-   3.2 **Data Fetching**:
-      - The function uses the `get_rule_query_response_data` method to fetch data based on the query defined in `json_list_RuleID_2113`.
+5. **Data Preparation**:
+   - Update the DataFrame with a composite key derived from the key attribute name.
+   - Determine the total size of the unique data based on the key attribute.
 
-   3.3 **Data Processing**:
-      - If the fetched data (`df_2113`) is a DataFrame:
-         - Filter the data to create two DataFrames:
-            - `query_response_2113_1`: Contains records with null `dnsName` values.
-            - `query_response_2113_2`: Contains records with non-null `dnsName` values that match a specific pattern.
-         - Merge `df_2113` with `query_response_2113_2` to identify records that are present in `df_2113` but not in `query_response_2113_2`.
-         - Extract the exception records (`response_2113_excpn`) and drop duplicates based on a unique ID (`OSI:invNo`).
-         - Rename columns to ensure consistency with expected output format.
+6. **Data Filtering**:
+   - Check for any missing filter or non-included filter attributes in the DataFrame. If there's an issue, log the error message and skip further processing of this rule.
 
-   3.4 **Handling Non-DataFrame Responses**:
-      - If the fetched data (`df_2113`) is not a DataFrame but a response object, an error message is printed and an exception is raised.
+7. **Attribute Verification**:
+   - If the rule is designed to check attributes not present in the source data (`DIR_BRKS_FM_SRC_IN` is 'N'), verify the attribute to be checked (`CHK_ATTR_NM`). If it doesn't match with the DataFrame's columns, update the attribute name in the rule details and the database.
 
-   3.5 **Custom Scope Calculation**:
-      - Attempts to calculate the custom scope using the `calculate_custom_scope` function. If there's an error in this step, it prints an error message and sets `scope_count` to `None`.
+8. **Conformity Check**:
+   - Extract the conformity values associated with the rule.
+   - Check the data against these conformity values to identify any exceptions. This results in the `rule_exceptions_df`, a DataFrame containing records that don't conform to the rule.
 
-   3.6 **Error Handling**:
-      - Any exceptions encountered during data processing or custom scope calculation are caught and printed.
+9. **Exception Handling**:
+   - If the `rule_exceptions_df` contains exceptions:
+     - Compute the number of unique exceptions based on the key attribute.
+     - Store these exceptions in the database.
+     - Log the status of the rule execution with the number of exceptions found.
+     - Optionally, trigger any post-rule execution jobs.
+   - If there are no exceptions:
+     - Log the successful execution of the rule, indicating no exceptions were found.
 
-   3.7 **Returning Data**:
-      - The function returns two values:
-         - `df_excp_rcd_final`: A DataFrame containing the exception records.
-         - `scope_count`: The calculated scope count.
+10. **Handling Other Response Scenarios**:
+   - If the data retrieval response is other than a DataFrame (e.g., an HTTP response indicating an error), log the unexpected response.
+   - If no data is returned at all, log a message indicating a `NoneType` response was received.
 
-The above sequence provides a clear, step-by-step breakdown of the custom rule code. This should provide a good foundation for creating a flowchart to represent the logic of this custom rule.
+11. **Error Handling for Each Rule**:
+   - If any errors or exceptions occur during the processing of a specific rule, these are caught, logged, and the process continues with the next rule.
 
-Would you like any further details or visual representation suggestions for any specific part?
+---
+
+This detailed flow provides an understanding of how non-custom rules are processed within the `dq_engine` function. It should help you create a comprehensive segment of the flowchart specifically for non-custom rule processing.
