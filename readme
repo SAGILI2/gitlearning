@@ -1,80 +1,43 @@
-Alright, let's delve deeper into the "Executing Custom Rules" section to provide an expanded flow suitable for a flowchart:
+Certainly! I'll break down the custom rule Python code you've provided into a step-by-step flow, suitable for creating a flowchart:
 
----
+1. **Initialization**:
+   - A JSON structure (`json_list_RuleID_2113`) is defined. This structure appears to define a query, with filters and other configurations, to fetch specific data from a source. 
 
-**Executing Custom Rules**:
+2. **Function: `calculate_custom_scope`**:
+   - As its name suggests, this function would be used to calculate a custom scope. Currently, it's a placeholder and just returns `None`.
 
-1. **Identify Custom Rule**:
-   - Check the rule details to see if there's an associated custom Python file (`CSTM_PYTHON_FILE_NM`).
+3. **Function: `dq_engine_custom`**:
+   - This is the main custom rule function that gets executed when the `dq_engine` encounters a custom rule.
 
-2. **Import Custom Rule Script**:
-   - Remove the `.py` extension from the custom Python file name (if present).
-   - Use Python's `importlib` to dynamically import the custom rule's Python file as a module.
-   - Extract the `dq_engine_custom` function from the imported module. This function contains the custom rule logic.
+   3.1 **Extracting Rule Details**:
+      - The function extracts details like `rule_id` and `ingestion_cd` from the `rule_details` argument.
 
-3. **Execute Custom Rule**:
-   - Call the `dq_engine_custom` function with necessary parameters, such as rule details and connection configurations.
-   - This function fetches and processes data based on custom logic and returns two main pieces of information:
-     - `rule_exceptions_df`: A DataFrame containing the exceptions or issues identified by the custom rule.
-     - `scope_count`: A count indicating the scope or amount of data that was checked.
+   3.2 **Data Fetching**:
+      - The function uses the `get_rule_query_response_data` method to fetch data based on the query defined in `json_list_RuleID_2113`.
 
-4. **Custom Scope Calculation**:
-   - If the custom rule does not provide a `scope_count`, calculate it using the `calculate_scope` function or another method if necessary.
+   3.3 **Data Processing**:
+      - If the fetched data (`df_2113`) is a DataFrame:
+         - Filter the data to create two DataFrames:
+            - `query_response_2113_1`: Contains records with null `dnsName` values.
+            - `query_response_2113_2`: Contains records with non-null `dnsName` values that match a specific pattern.
+         - Merge `df_2113` with `query_response_2113_2` to identify records that are present in `df_2113` but not in `query_response_2113_2`.
+         - Extract the exception records (`response_2113_excpn`) and drop duplicates based on a unique ID (`OSI:invNo`).
+         - Rename columns to ensure consistency with expected output format.
 
-5. **Handle Rule Exceptions**:
-   - Based on the exceptions DataFrame (`rule_exceptions_df`):
-     - If there are exceptions:
-       5.1. Create a DataFrame (`rule_obj`) with details about the rule.
-       5.2. Store the exceptions in the database using the `store_exceptions` function.
-       5.3. Print a success message indicating that the rule has been executed.
-       5.4. Log the status of the rule execution along with the number of exceptions and the scope count using the `log_rule_status` function.
-       5.5. Trigger any post-rule execution jobs (e.g., notifications or additional processes) using the `post_jobs` function.
-     - If there are no exceptions:
-       - Print a success message indicating that no exceptions were found.
-       - Log the successful execution of the rule using the `log_rule_status` function.
+   3.4 **Handling Non-DataFrame Responses**:
+      - If the fetched data (`df_2113`) is not a DataFrame but a response object, an error message is printed and an exception is raised.
 
-6. **Completion**:
-   - Print a message to indicate that the processing for the given rule ID is done.
+   3.5 **Custom Scope Calculation**:
+      - Attempts to calculate the custom scope using the `calculate_custom_scope` function. If there's an error in this step, it prints an error message and sets `scope_count` to `None`.
 
+   3.6 **Error Handling**:
+      - Any exceptions encountered during data processing or custom scope calculation are caught and printed.
 
-Alright, let's focus specifically on the `dq_engine_custom` function from the custom Python file you provided and delve deeper into how it fetches, processes the data, and returns the exceptions and scope count:
+   3.7 **Returning Data**:
+      - The function returns two values:
+         - `df_excp_rcd_final`: A DataFrame containing the exception records.
+         - `scope_count`: The calculated scope count.
 
----
+The above sequence provides a clear, step-by-step breakdown of the custom rule code. This should provide a good foundation for creating a flowchart to represent the logic of this custom rule.
 
-**Function: `dq_engine_custom`**:
-
-1. **Extracting Rule Details**:
-   - Extract specific details from the `rule_details` parameter, such as the rule ID (`rule_id`) and ingestion code (`ingestion_cd`).
-
-2. **Data Retrieval**:
-   - The `get_rule_query_response_data` function is called with specific parameters including a predefined query (`json_list_RuleID_2113`).
-   - This function fetches data based on the custom rule's requirements and returns a DataFrame (`df_2113`) or a response object.
-
-3. **Data Processing**:
-   - If the fetched data (`df_2113`) is a DataFrame:
-     - Two subsets of data are created:
-       - `query_response_2113_1`: Contains records with null values in the `dnsName` column.
-       - `query_response_2113_2`: Contains records where the `dnsName` column values match a specific pattern (starting with a lowercase letter).
-     - The main data (`df_2113`) is merged with `query_response_2113_2` to identify records present in the main data but absent in `query_response_2113_2`.
-     - Extract the exception records (`response_2113_excpn`) and drop duplicates based on a unique ID (`OSI:invNo`).
-     - The columns are renamed to ensure they align with the expected output format, resulting in the `df_excp_rcd_final` DataFrame.
-
-4. **Handling Non-DataFrame Responses**:
-   - If the fetched data (`df_2113`) is not a DataFrame but a response object (indicating an error or unexpected response), an error message is printed, and an exception is raised.
-
-5. **Custom Scope Calculation**:
-   - The `calculate_custom_scope` function is called to compute a custom scope for the data. Currently, this function is a placeholder and simply returns `None`. If there's an error during this computation, the error is printed and `scope_count` is set to `None`.
-
-6. **Error Handling**:
-   - If any exception is encountered during the data processing or custom scope calculation steps, an error message is printed.
-
-7. **Returning Processed Data and Scope**:
-   - The function returns the final exception records DataFrame (`df_excp_rcd_final`) and the calculated scope count (`scope_count`).
-
----
-
-This breakdown provides a detailed understanding of the `dq_engine_custom` function's logic and flow, focusing on how it processes data based on the custom rule's requirements and then identifies exceptions. It should help in creating a more detailed segment of the flowchart for this specific custom rule processing step.
-
----
-
-This expanded flow provides a detailed view of the custom rule execution process, laying out the sequence of actions and decisions that take place when the `dq_engine` function encounters a custom rule. This should be suitable for creating a detailed flowchart segment specifically for custom rules.
+Would you like any further details or visual representation suggestions for any specific part?
