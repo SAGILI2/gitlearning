@@ -1,0 +1,16 @@
+@staticmethod
+def get_profiling_results(profile_id):
+    max_run_id = execute_raw_oracle(MAX_RUN_ID.format(profile_id=profile_id))
+    if max_run_id := max_run_id.first()[0]:
+        return (
+            db.session.query(ProfileRsltsMastModel, ProfileDetailsMasterModel, DqaasProcRunSumModel.strt_tm)
+            .join(ProfileDetailsMasterModel, ProfileDetailsMasterModel.profile_id == ProfileRsltsMastModel.profile_id)
+            .join(DqaasProcRunSumModel, DqaasProcRunSumModel.run_id == ProfileRsltsMastModel.run_id)
+            .filter(
+                ProfileRsltsMastModel.profile_id == profile_id,
+                ProfileRsltsMastModel.run_id == max_run_id
+            )
+            .all()
+        )
+    else:
+        return None
