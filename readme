@@ -1,4 +1,4 @@
-from PIL import Image
+import cv2
 import time
 import os
 
@@ -11,17 +11,23 @@ image_files = [f for f in os.listdir(image_folder) if f.endswith(('.png', '.jpg'
 # Sort the image files for display order (if needed)
 image_files.sort()
 
+# Create an OpenCV window
+cv2.namedWindow("Image Viewer", cv2.WINDOW_NORMAL)
+
 # Loop through the image files and display them one by one
 for image_file in image_files:
-    # Open the image using Pillow
+    # Load and display the image using OpenCV
     image_path = os.path.join(image_folder, image_file)
-    img = Image.open(image_path)
-    
-    # Display the image
-    img.show()
+    img = cv2.imread(image_path)
 
-    # Wait for 5 seconds
-    time.sleep(5)
+    if img is not None:
+        cv2.imshow("Image Viewer", img)
+        
+        # Wait for 5 seconds (5000 milliseconds)
+        cv2.waitKey(5000)
 
-    # Close the image window
-    img.close()
+        # Close the image window
+        cv2.destroyAllWindows()
+
+# Close the OpenCV window at the end
+cv2.destroyAllWindows()
