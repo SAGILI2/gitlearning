@@ -1,13 +1,43 @@
 import os
 import time
-import pyautogui
-from PIL import Image
+from PIL import Image, ImageTk
+import tkinter as tk
 
 # Specify the folder containing the images
 image_folder = "/path/to/your/images"
 
 # Get screen dimensions
-screen_width, screen_height = pyautogui.size()
+screen_width = 1920  # Replace with your screen width
+screen_height = 1080  # Replace with your screen height
+
+# Create a tkinter window
+root = tk.Tk()
+root.title("Image Viewer")
+
+# Function to display an image at the center of the screen
+def display_image(image_path):
+    # Open the image using Pillow (PIL)
+    img = Image.open(image_path)
+
+    # Resize the image if it exceeds screen dimensions
+    if img.width > screen_width or img.height > screen_height:
+        img.thumbnail((screen_width, screen_height))
+
+    # Create a Tkinter PhotoImage object from the Pillow image
+    tk_img = ImageTk.PhotoImage(img)
+
+    # Create a label widget to display the image
+    label = tk.Label(root, image=tk_img)
+    label.pack()
+
+    # Center the window on the screen
+    x = (screen_width - img.width) // 2
+    y = (screen_height - img.height) // 2
+    root.geometry(f"{img.width}x{img.height}+{x}+{y}")
+
+    # Display the image
+    label.img = tk_img  # Keep a reference to prevent garbage collection
+    root.after(5000, label.pack_forget)  # Display for 5 seconds and then remove
 
 # Loop through the image files and display them one by one
 for image_file in sorted(os.listdir(image_folder)):
@@ -15,25 +45,13 @@ for image_file in sorted(os.listdir(image_folder)):
         # Construct the full image file path
         image_path = os.path.join(image_folder, image_file)
 
-        # Open the image using Pillow (PIL)
-        img = Image.open(image_path)
-
-        # Get image dimensions
-        img_width, img_height = img.size
-
-        # Calculate the position for centering the image
-        x = (screen_width - img_width) // 2
-        y = (screen_height - img_height) // 2
-
-        # Display the image at the center of the screen
-        pyautogui.alert(
-            text="",
-            title="Image Viewer",
-            button="OK",
-            timeout=5,
-            image=image_path,
-            location=(x, y)  # Set the location to center the image
-        )
+        # Display the image
+        display_image(image_path)
 
         # Wait for 5 seconds
+        root.update_idletasks()
+        root.update()
         time.sleep(5)
+
+# Close the tkinter window
+root.destroy()
