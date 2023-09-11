@@ -1,125 +1,27 @@
-from pathlib import Path
-import base64
-from cryptography.fernet import Fernet
-import qrcode
+from PIL import Image
+import time
+import os
 
+# Specify the folder containing the images
+image_folder = "/path/to/your/images"
 
-KEY = b"Qjp-yA5WEDgrHAqzfLOqFtzNzW7hg6yGy6qnmiQfr1E="
+# Get a list of image files in the folder
+image_files = [f for f in os.listdir(image_folder) if f.endswith(('.png', '.jpg', '.jpeg', '.gif'))]
 
+# Sort the image files for display order (if needed)
+image_files.sort()
 
-def encrypt_data(data, key, encode=False):
-    if encode:
-        data = base64.b64encode(data).decode()  # Encoding is optional for text data, not needed for binary data
-    cipher_suite = Fernet(key)
-    encrypted_data = cipher_suite.encrypt(data.encode() if isinstance(data, str) else data)  # Encode only if it's a string
-    return encrypted_data
+# Loop through the image files and display them one by one
+for image_file in image_files:
+    # Open the image using Pillow
+    image_path = os.path.join(image_folder, image_file)
+    img = Image.open(image_path)
+    
+    # Display the image
+    img.show()
 
+    # Wait for 5 seconds
+    time.sleep(5)
 
-
-def decrypt_data(encrypted_data, key, decode=False):
-    """
-    :param encrypted_data: encrypted data
-    :param key: key used for encrypting
-    :param decode: optional decoding it is encoded
-    :return: decrypted and decoded data
-    """
-    cipher_suite = Fernet(key)
-    decrypted_data = cipher_suite.decrypt(encrypted_data)
-    if decode:
-        decrypted_data = base64.b64decode(decrypted_data).decode()
-    return decrypted_data
-
-
-def generate_qr_codes(encoded_encrypted_data, chunk_size=2300, folder_path=None):
-    """
-
-    :param encoded_encrypted_data: given data might be encoded and  should be encrypted
-    :param chunk_size: how many characters should qr contains
-    :param folder_path: path of folder where that data to be stored
-    :return: list of all qr path's
-    """
-    qr_code_paths = []
-    data_chunks = [encoded_encrypted_data[i:i + chunk_size] for i in range(0, len(encoded_encrypted_data), chunk_size)]
-
-    for i, chunk in enumerate(data_chunks):
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
-        qr.add_data(chunk)
-        qr.make(fit=True)
-
-        qr_code_name = f"encrypted_qr_{i + 1}.png"
-        qr_code_path = Path(folder_path, qr_code_name) if folder_path else Path(qr_code_name)
-        qr.make_image(fill_color="black", back_color="white").save(qr_code_path)
-        qr_code_paths.append(str(qr_code_path))  # Convert to string for consistency
-
-    return qr_code_paths
-
-
-
-def save_encrypted_data_to_file(data, file_path):
-    with open(file_path, 'wb') as file:
-        file.write(data)
-
-
-def load_encrypted_data_from_file(file_path):
-    with open(file_path, 'rb') as file:
-        return file.read()
-
-def save_decrypted_data_to_file(data, file_path):
-    with open(file_path, 'wb') as file:
-        file.write(data)
-
-def process_file_and_generate_qrs(file_path, key, output_folder=None):
-    """
-    :param file_path: path to the file to be processed
-    :param key: encryption key
-    :param output_folder: optional folder to save encrypted data and QR codes
-    """
-    # Read the content of the file as binary data
-    with open(file_path, 'rb') as file:
-        file_content = file.read()
-
-    # Encrypt the file content
-    encrypted_data = encrypt_data(file_content, key)
-
-    # Create a folder for processed data (use file name without extension)
-    file_name = Path(file_path).stem
-    if not output_folder:
-        output_folder = Path(__file__).parent
-    processed_folder = Path(output_folder, f"PROCESSED_{file_name.upper()}")
-
-    # Create the folder if it doesn't exist
-    processed_folder.mkdir(parents=True, exist_ok=True)
-
-    # Save the encrypted data to a file
-    encrypted_file_path = processed_folder / f"{file_name}_encrypted.bin"
-    save_encrypted_data_to_file(encrypted_data, encrypted_file_path)
-
-    # Generate QR codes for the encrypted data
-    qr_code_paths = generate_qr_codes(encrypted_data, folder_path=processed_folder)
-
-    return processed_folder, qr_code_paths
-
-
-def process_encrypted_data(file_path, key, output_folder=None):
-    # Read the content of the file as binary data
-    with open(file_path, 'rb') as file:
-        file_content = file.read()
-        
-    # Create a folder for processed data (use file name without extension)
-    file_name = Path(file_path).stem
-    if not output_folder:
-        output_folder = Path(__file__).parent
-    processed_folder = Path(output_folder, f"PROCESSED_{file_name.upper()}")
-
-    decrypted_data = decrypt_data(file_content, key)
-    save_decrypted_data_to_file(decrypted_data, r"C:\Users\rohith\Downloads\Tucash\x.zip")
-
-
-
-
-
+    # Close the image window
+    img.close()
