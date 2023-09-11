@@ -1,33 +1,39 @@
-import cv2
-import time
 import os
+import time
+import pyautogui
+from PIL import Image
 
 # Specify the folder containing the images
 image_folder = "/path/to/your/images"
 
-# Get a list of image files in the folder
-image_files = [f for f in os.listdir(image_folder) if f.endswith(('.png', '.jpg', '.jpeg', '.gif'))]
-
-# Sort the image files for display order (if needed)
-image_files.sort()
-
-# Create an OpenCV window
-cv2.namedWindow("Image Viewer", cv2.WINDOW_NORMAL)
+# Get screen dimensions
+screen_width, screen_height = pyautogui.size()
 
 # Loop through the image files and display them one by one
-for image_file in image_files:
-    # Load and display the image using OpenCV
-    image_path = os.path.join(image_folder, image_file)
-    img = cv2.imread(image_path)
+for image_file in sorted(os.listdir(image_folder)):
+    if image_file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')):
+        # Construct the full image file path
+        image_path = os.path.join(image_folder, image_file)
 
-    if img is not None:
-        cv2.imshow("Image Viewer", img)
-        
-        # Wait for 5 seconds (5000 milliseconds)
-        cv2.waitKey(5000)
+        # Open the image using Pillow (PIL)
+        img = Image.open(image_path)
 
-        # Close the image window
-        cv2.destroyAllWindows()
+        # Get image dimensions
+        img_width, img_height = img.size
 
-# Close the OpenCV window at the end
-cv2.destroyAllWindows()
+        # Calculate the position for centering the image
+        x = (screen_width - img_width) // 2
+        y = (screen_height - img_height) // 2
+
+        # Display the image at the center of the screen
+        pyautogui.alert(
+            text="",
+            title="Image Viewer",
+            button="OK",
+            timeout=5,
+            image=image_path,
+            location=(x, y)  # Set the location to center the image
+        )
+
+        # Wait for 5 seconds
+        time.sleep(5)
