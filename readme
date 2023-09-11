@@ -23,21 +23,20 @@ def display_image(image_path):
     if img.width > screen_width or img.height > screen_height:
         img.thumbnail((screen_width, screen_height))
 
+    # Calculate center positions
+    x = (screen_width - img.width) // 2
+    y = (screen_height - img.height) // 2
+
     # Create a Tkinter PhotoImage object from the Pillow image
     tk_img = ImageTk.PhotoImage(img)
 
     # Create a label widget to display the image
     label = tk.Label(root, image=tk_img)
-    label.pack()
-
-    # Center the window on the screen
-    x = (screen_width - img.width) // 2
-    y = (screen_height - img.height) // 2
-    root.geometry(f"{img.width}x{img.height}+{x}+{y}")
+    label.place(x=x, y=y)  # Set the position to center the image
 
     # Display the image
     label.img = tk_img  # Keep a reference to prevent garbage collection
-    root.after(5000, label.pack_forget)  # Display for 5 seconds and then remove
+    root.after(5000, lambda: label.place_forget())  # Display for 5 seconds and then remove
 
 # Loop through the image files and display them one by one
 for image_file in sorted(os.listdir(image_folder)):
