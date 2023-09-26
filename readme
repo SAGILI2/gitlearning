@@ -1,27 +1,40 @@
-from flask_restx import Namespace, Resource
-from marshmallow import Schema, fields
-from flask_restx.model import model_from
+from pydantic import BaseModel
+from typing import List
 
-# Define the marshmallow schema (same as before)
-class ConfigRecordSchema(Schema):
-    env = fields.String(required=True)
-    key_nm = fields.String(required=True)
-    val_tx = fields.String(required=True)
+class ConfigRecord(BaseModel):
+    env: str
+    key_nm: str
+    val_tx: str
+    config_id: int
 
-class MainPayloadSchema(Schema):
-    data = fields.List(fields.Nested(ConfigRecordSchema), required=True)
-    cnsmr_ingestion_id = fields.Integer(required=True)
+class MainPayload(BaseModel):
+    data: List[ConfigRecord]
+    cnsmr_ingestion_id: int
 
-# Create a Flask-RESTx namespace
-ns = Namespace('config', description='Config operations')
 
-# Convert the marshmallow schema to a Flask-RESTx model
-MainPayloadModel = model_from(MainPayloadSchema, ns)
+from flask_restx import fields
 
-# Define the API endpoint
+config_record_fields = ns.model('ConfigRecord', {
+    'env': fields.String,
+    'key_nm': fields.String,
+    'val_tx': fields.String,
+    'config_id': fields.Integer
+})
+
+main_payload_fields = ns.model('MainPayload', {
+    'data': fields.List(fields.Nested(config_record_fields)),
+    'cnsmr_ingestion_id': fields.Integer
+})
+
+
 @ns.route('/endpoint')
 class ConfigResource(Resource):
-    @ns.expect(MainPayloadModel, validate=True)
+    @ns.expect(main_payload_fields)
     def post(self):
         # Your logic here
         return {"message": "Data received"}
+
+
+
+
+
