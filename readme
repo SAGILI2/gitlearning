@@ -1,11 +1,22 @@
-SELECT 
-    RD.RULE_ID, 
-    RF.FLTR_ATTR_NM, 
-    RF.FLTR_ATTR_TX, 
-    COUNT(DISTINCT CASE WHEN RF.FLTR_CD = 'IN' THEN RF.FLTR_ATTR_NM END) AS IN_Filter_Count, 
-    COUNT(DISTINCT CASE WHEN RF.FLTR_CD = 'NOT_IN' THEN RF.FLTR_ATTR_NM END) AS NOT_IN_Filter_Count
-FROM RULE_DTL RD
-INNER JOIN rule_fltr RF ON RD.RULE_ID = RF.RULE_ID
-GROUP BY RD.RULE_ID, RF.FLTR_ATTR_NM, RF.FLTR_ATTR_TX
-HAVING COUNT(DISTINCT CASE WHEN RF.FLTR_CD = 'IN' THEN RF.FLTR_ATTR_NM END) > 1
-   AND COUNT(DISTINCT CASE WHEN RF.FLTR_CD = 'NOT_IN' THEN RF.FLTR_ATTR_NM END) > 1;
+# Modifying the validation using ns.expect for the new data structure
+
+# For the list of dictionaries, we need to define the fields for an individual config record
+config_record_fields = {
+    "env": fields.String(required=True),
+    "key_nm": fields.String(required=True),
+    "val_tx": fields.String(required=True)
+}
+
+# Now, we define the main input structure which includes the list of config records and the ingestion_id
+new_expected_input_fields = {
+    "data": fields.List(fields.Nested(appl_config_ns.model("ConfigRecord", config_record_fields)), required=True),
+    "cnsmr_ingestion_id": fields.Integer(required=True)
+}
+
+# Creating the new model for the updated expected fields
+new_appl_config_fields = appl_config_ns.model("DqaasApplConfigModel", new_expected_input_fields)
+
+new_expected_input_fields_str = str(new_expected_input_fields)
+new_appl_config_fields_str = str(new_appl_config_fields)
+
+new_expected_input_fields_str, new_appl_config_fields_str
