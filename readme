@@ -1,15 +1,27 @@
-def bulk_insert_configurations(data, cnsmr_ingestion_id):
-    # Create a list of model instances
-    configurations = [
-        DqaasApplConfigModel(
-            env=config['env'],
-            key_nm=config['key_nm'],
-            val_tx=config['val_tx'],
-            cnsmr_ingestion_id=cnsmr_ingestion_id
-        )
-        for config in data
-    ]
-    
-    # Bulk insert
-    db.session.add_all(configurations)
-    db.session.commit()
+from flask_restx import Namespace, Resource
+from marshmallow import Schema, fields
+from flask_restx.model import model_from
+
+# Define the marshmallow schema (same as before)
+class ConfigRecordSchema(Schema):
+    env = fields.String(required=True)
+    key_nm = fields.String(required=True)
+    val_tx = fields.String(required=True)
+
+class MainPayloadSchema(Schema):
+    data = fields.List(fields.Nested(ConfigRecordSchema), required=True)
+    cnsmr_ingestion_id = fields.Integer(required=True)
+
+# Create a Flask-RESTx namespace
+ns = Namespace('config', description='Config operations')
+
+# Convert the marshmallow schema to a Flask-RESTx model
+MainPayloadModel = model_from(MainPayloadSchema, ns)
+
+# Define the API endpoint
+@ns.route('/endpoint')
+class ConfigResource(Resource):
+    @ns.expect(MainPayloadModel, validate=True)
+    def post(self):
+        # Your logic here
+        return {"message": "Data received"}
