@@ -1,33 +1,36 @@
+import concurrent.futures
+from flask import Flask, jsonify, request
 import asyncio
-from flask import Flask
-from flask_restx import Api, Resource, fields
 
 app = Flask(__name__)
-api = Api(app)
 
-# Define your DTO (Data Transfer Object)
-breaks_response = api.model('BreaksResponse', {
-    'message': fields.String,
-})
-
-async def email_latest_breaks(rule_id: int, **kwargs):
+# Define your background task function
+async def email_latest_breaks_background(rule_id):
     try:
-        # Your existing try block code here
+        # Your background task code here
+        # This function runs asynchronously in a thread
+        # ...
+        pass
+    except Exception as e:
+        # Handle exceptions as needed
+        pass
 
-    except exc.SQLAlchemyError as e:
-        current_app.logger.error(f"SQLAlchemy error while getting latest breaks for rule_id {rule_id}: {e}")
-        # No return statement here
+# Create a ThreadPoolExecutor with a limited number of threads
+executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
-@api.route('/your_endpoint')
-class YourResource(Resource):
-    @api.expect(api.model('BreaksRequest', {
-        'rule_id': fields.Integer,
-    }), validate=True)
-    @api.marshal_with(breaks_response, code=200)
-    def post(self):
-        rule_id = api.payload['rule_id']
-        asyncio.create_task(email_latest_breaks(rule_id, **request.kwargs))
-        return {"message": "We have received your email request for your break, an email will be sent to you shortly"}, 200
+# Your route definition
+@app.route('/your_endpoint', methods=['POST'])
+def your_endpoint():
+    rule_id = int(request.json.get('rule_id'))
+
+    # Start the background task asynchronously
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        loop.run_until_complete(executor.submit(email_latest_breaks_background, rule_id))
+    
+    return jsonify({"message": "Background task started."}), 202
 
 if __name__ == '__main__':
     app.run(debug=True)
