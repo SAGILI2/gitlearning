@@ -1,0 +1,92 @@
+import os
+import cv2
+import numpy as np
+import math
+import imutils
+
+def get_line_length(pt1,pt2):
+    '''
+    calculate line length
+    :param pt1: start point of line
+    :param pt2: end point of line
+    :return: euclidean distance bw the 2 points
+    '''
+    [x1,y1] = pt1
+    [x2,y2] = pt2
+    lin_len = np.power((np.power(x1 - x2, 2) + np.power(y1 - y2, 2)), 0.5)
+    return lin_len
+
+def getHorLines(im):
+    '''
+    extract horizontal lines
+    :param im:
+    :return: end co-ordinates of identified lines
+    '''
+    if len(im.shape)==3:
+        gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    else:
+        gray = im
+    gray = cv2.bitwise_not(gray)
+    bw = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, \
+                               cv2.THRESH_BINARY, 15, -2)
+    horizontal = np.copy(bw)
+    width = horizontal.shape[1]
+    height = horizontal.shape[0]
+    horizontalSize = width // 50  # min horizontal line length
+    # Create structure element for extracting horizontal lines through morphology operations
+    horStructure = cv2.getStructuringElement(cv2.MORPH_RECT, (horizontalSize, 1))
+    # Apply morphology operations
+    horizontal = cv2.erode(horizontal, horStructure)
+    horizontal = cv2.dilate(horizontal, horStructure)
+    contours = cv2.findContours(horizontal, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)[-2]
+    hor_lines = []
+    for c in contours:
+        sort_c = sorted(c, key=lambda x: x[0][1])
+        pt1 = tuple(sort_c[0][0])
+        pt2 = tuple(sort_c[-1][0])
+        # check to verify extracted line is not a border
+        if height/10 <pt1[1]< height - height/10 and height/10 <pt2[1]< height - height/10:
+            hor_lines.append([pt1, pt2])
+        # cv2.line(im, pt1, pt2, (255, 0, 0), 2)
+    return hor_lines
+
+def get_alignment(img):
+    '''
+    calculate the angle of rotation
+    :param path: image path
+    :return: orientation angle in degrees
+    '''
+    print("getting align for shape",img.shape)
+    hor_lines = getHorLines(img)
+    img_width = img.shape[1]
+    hor_lines = sorted(hor_lines, key=lambda x: get_line_length(x[0], x[1]), reverse=True)
+    if len(hor_lines) > 0 and get_line_length(hor_lines[0][0],hor_lines[0][1]) > img_width/10:
+        if len(hor_lines) > 5:
+            hor_lines = hor_lines[:5]
+        angles = []
+        lengths = []
+        im_out = img.copy()
+        for h in hor_lines:
+            cv2.line(im_out,h[0],h[1],(0,0,255),4)
+            [x1, y1] = h[0]
+            [x2, y2] = h[1]
+            # print(h)
+            if x2 < x1:
+                rotate = "clock"
+            else:
+                rotate = "anti"
+            length = get_line_length(h[0], h[1])
+            sin_val = abs(y2 - y1) / length
+            angle = math.degrees(math.asin(sin_val))
+            if "anti" in rotate:
+                angle = -1 * angle
+            # print("angle", angle,"rotate", rotate)
+            angles.append(angle)
+            lengths.append(length)
+        if len(angles) > 0:
+            rotAngle = np.average(angles,weights=lengths)
+            if rotAngle!=0:
+                return rotAngle
+
+    return 0
+
