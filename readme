@@ -1,45 +1,13 @@
-import queue
-import threading
-from flask import Flask, jsonify, request
+import extract_msg
 
-app = Flask(__name__)
+def extract_html_from_msg(file_path):
+    with extract_msg.openMsg(file_path) as msg:
+        if msg.htmlBody:
+            return msg.htmlBody
+        else:
+            return None
 
-# Create a task queue
-task_queue = queue.Queue()
-
-# Define your background task function
-def email_latest_breaks_background(rule_id):
-    try:
-        # Your background task code here
-        # This function runs in a separate thread
-        # ...
-        pass
-    except Exception as e:
-        # Handle exceptions as needed
-        pass
-
-# Function for processing tasks from the queue
-def process_tasks():
-    while True:
-        rule_id = task_queue.get()  # Get a task from the queue
-        email_latest_breaks_background(rule_id)
-        task_queue.task_done()  # Mark the task as completed
-
-# Create a thread for processing tasks
-task_thread = threading.Thread(target=process_tasks)
-task_thread.daemon = True  # Allow the thread to exit when the main program exits
-task_thread.start()
-
-# Your route definition
-@app.route('/your_endpoint', methods=['POST'])
-def your_endpoint():
-    rule_id = int(request.json.get('rule_id'))
-
-    # Enqueue the background task
-    task_queue.put(rule_id)
-
-    return jsonify({"message": "Background task enqueued."}), 202
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
+# Example usage
+msg_file_path = 'path_to_your_file.msg'
+html_content = extract_html_from_msg(msg_file_path)
+print(html_content)
