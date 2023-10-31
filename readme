@@ -1,13 +1,249 @@
-import extract_msg
-
-def extract_html_from_msg(file_path):
-    with extract_msg.openMsg(file_path) as msg:
-        if msg.htmlBody:
-            return msg.htmlBody
-        else:
-            return None
-
-# Example usage
-msg_file_path = 'path_to_your_file.msg'
-html_content = extract_html_from_msg(msg_file_path)
-print(html_content)
+<html>
+  <body bgcolor=white lang=EN-US link=blue vlink=purple style='word-wrap:break-word'>
+          <div>
+            <div align=center>
+              <table class=MsoNormalTable border=0 cellpadding=0 width="100%" style='width:100.0%'>
+                <tr>
+                  <td width="100%" style='width:100.0%;padding:.75pt .75pt .75pt .75pt'>
+                    <div align=center>
+                      <table class=MsoNormalTable border=0 cellpadding=0>
+                        <tr>
+                          <td style='padding:.75pt .75pt .75pt .75pt'>
+                            <p class=MsoNormal align=center style='text-align:center'>
+                              <span style='font-family:Raleway'>
+                                <img border=0 width=1290 height=168 style='width:13.4375in;height:1.75in' id="Picture_x0020_1" src="cid:bannerimage">
+                              </span>
+                              <span style='font-family:Raleway'>
+                                <o:p></o:p>
+                              </span>
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style='padding:.75pt .75pt .75pt .75pt;overflow-wrap:break-word;word-break:break-word'>
+                    <div align=center>
+                      <table class=MsoNormalTable border=0 cellpadding=0 width="62%" style='width:62.0%'>
+                        <tr>
+                          <td width="62%" style='width:62.0%;padding:.75pt .75pt .75pt .75pt'>
+                            <p style='text-align:justify;line-height:120%'>
+                              <strong>
+                                <span style='font-size:10.5pt;line-height:120%;font-family:Raleway;color:#3A3F3F'>Hi Stakeholder(s)! </span>
+                              </strong>
+                              <span style='font-size:10.5pt;line-height:120%;font-family:Raleway;color:#3A3F3F'>
+                                <o:p></o:p>
+                              </span>
+                            </p>
+                            <p style='text-align:justify'>
+                              <span style='font-size:10.5pt;font-family:Raleway;color:#3A3F3F'>You are receiving this email because you are listed as one of the contract for an active consumer contract which is/was due for rectification. Please see details below <o:p></o:p>
+                              </span>
+                            </p>
+                            <p style='text-align:justify'>
+                              <span style='font-size:10.5pt;font-family:Raleway;color:#3A3F3F'>As per the Audit requirement, all consumer contracts should be re-rectified yearly. This mandated process helps the platform to maintain the contracts up to highest standard. Failure to re-certify the contract will result in contract termination and users will loose access to {app name}
+                                <o:p></o:p>
+                              </span>
+                            </p>
+                            <p style='text-align:justify;line-height:25%'>
+                              <span style='font-size:10.5pt;line-height:25%;font-family:Raleway;color:#3A3F3F'>&nbsp; <o:p></o:p>
+                              </span>
+                            </p>
+                            <p style='text-align:justify;line-height:80%'>
+                              <strong>
+                                <span style='font-size:10.5pt;line-height:80%;font-family:Raleway;color:black;background:azure'>Contract Details</span>
+                              </strong>
+                              <span style='font-size:10.5pt;line-height:80%;font-family:Raleway;color:black;background:azure'></span>
+                              <span style='font-size:10.5pt;line-height:80%;font-family:Raleway;color:black'>
+                                <o:p></o:p>
+                              </span>
+                            </p>
+                            <table class=MsoNormalTable border=0 cellpadding=0 width="100%" style='width:100.0%;max-width:100%;background-color:#7ec9da17'>
+                              <tr>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>Consumer Contract Name: <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <b>
+                                      <span style='font-size:10.5pt;line-height:140%;color:black'>GES-W587437</span>
+                                    </b>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>
+                                      <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt 11.25pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>Is Mission Critical: <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <b>
+                                      <span style='font-size:10.5pt;line-height:140%;color:black'>N</span>
+                                    </b>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>
+                                      <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>Consumer Application: <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <b>
+                                      <span style='font-size:10.5pt;line-height:140%;color:black'>104796-Gaia ElasticSearch</span>
+                                    </b>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>
+                                      <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt 11.25pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>Status: <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <b>
+                                      <span style='font-size:10.5pt;line-height:140%;color:black'>Approved</span>
+                                    </b>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>
+                                      <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>Offering Name: <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <b>
+                                      <span style='font-size:10.5pt;line-height:140%;color:black'>Technology Asset Inventory - Basic</span>
+                                    </b>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>
+                                      <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt 11.25pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>Provider Seal: <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <b>
+                                      <span style='font-size:10.5pt;line-height:140%;color:black'>87674</span>
+                                    </b>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>
+                                      <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>Provider Product Name: <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <b>
+                                      <span style='font-size:10.5pt;line-height:140%;color:black'>Technology Reference Inventory Data</span>
+                                    </b>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>
+                                      <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt 11.25pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>&nbsp; <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                                <td style='padding:.75pt .75pt .75pt .75pt'>
+                                  <p class=MsoNormal style='text-align:justify;line-height:140%'>
+                                    <span style='font-size:10.5pt;line-height:140%;color:black'>&nbsp; <o:p></o:p>
+                                    </span>
+                                  </p>
+                                </td>
+                              </tr>
+                            </table>
+                            <p style='text-align:justify;line-height:140%'>
+                              <b>
+                                <span style='font-size:10.5pt;line-height:140%;font-family:Raleway;color:#3A3F3F'>Next Steps:</span>
+                              </b>
+                              <span style='font-size:10.5pt;line-height:140%;font-family:Raleway;color:#3A3F3F'> None <o:p></o:p>
+                              </span>
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td width="62%" style='width:62.0%;padding:.75pt .75pt .75pt .75pt;overflow-wrap:break-word;word-break:break-word'>
+                    <div align=center>
+                      <table class=MsoNormalTable border=0 cellpadding=0 width="62%" style='width:62.0%'>
+                        <tr>
+                          <td style='padding:.75pt .75pt .75pt .75pt'>
+                            <div class=MsoNormal align=center style='text-align:center'>
+                              <span style='font-size:8.5pt;font-family:Raleway'>
+                                <hr size=2 width="100%" align=center>
+                              </span>
+                            </div>
+                            <p style='text-align:justify'>
+                              <span style='font-size:8.5pt;font-family:Raleway'>Thanks, <br>
+                              </span>
+                              <strong>
+                                <span style='font-size:9.0pt;font-family:Raleway'>DCaaS Automated Notification Sytem </span>
+                              </strong>
+                              <span style='font-size:8.5pt;font-family:Raleway'>
+                                <o:p></o:p>
+                              </span>
+                            </p>
+                            <p style='text-align:justify;line-height:80%'>
+                              <span style='font-size:8.5pt;line-height:80%;font-family:Raleway'>Visit - <a href="go/dcaas-info">go/dcaas-info</a>
+                                <br>For support please reach out to <u>dcaas_support</u>
+                                <br>This mailbox cannot accept replies. Please do not reply to this message. <o:p></o:p>
+                              </span>
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <p class=MsoNormal>
+              <o:p>&nbsp;</o:p>
+            </p>
+          </div>
+  </body>
+</html>
