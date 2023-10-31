@@ -3,24 +3,30 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 
-# Step 1: Prepare the Image
-with open("path_to_image.jpg", "rb") as img_file:
-    msg_image = MIMEImage(img_file.read())
-    msg_image.add_header('Content-ID', '<image1>')  # angle brackets are important
-    img_file.close()
+# Define the path to your image
+image_path = "path_to_your_image.png"
 
-# Step 2: Craft the Email
+# Open the image and read it
+with open(image_path, 'rb') as file:
+    img_data = file.read()
+
+# Create the root message
 msg = MIMEMultipart('related')
-msg['From'] = 'your_email@example.com'
-msg['To'] = 'recipient_email@example.com'
-msg['Subject'] = 'Test Email with Inline Image'
+msg['Subject'] = 'Test email with inline image'
+msg['From'] = 'sender@example.com'
+msg['To'] = 'receiver@example.com'
 
-# HTML body with a reference to the inline image using the CID we gave it
-msg_text = MIMEText('<b>This is a test email</b><br><img src="cid:image1">', 'html')
-msg.attach(msg_text)
-msg.attach(msg_image)
+# Create the HTML part with a reference to the embedded image
+html_part = MIMEText('<html><body><h1>Hello!</h1><img src="cid:image1"></body></html>', 'html')
+msg.attach(html_part)
 
-# Step 3: Send the Email
-with smtplib.SMTP('your.smtp.server', port) as server:
-    server.login('your_email@example.com', 'your_password')
-    server.sendmail('your_email@example.com', 'recipient_email@example.com', msg.as_string())
+# Embed the image
+image_mime = MIMEImage(img_data, name='image.png')
+image_mime.add_header('Content-ID', '<image1>')
+msg.attach(image_mime)
+
+# Send the email
+with smtplib.SMTP('smtp.example.com', 587) as smtp:
+    smtp.starttls()
+    smtp.login('sender@example.com', 'password')
+    smtp.sendmail('sender@example.com', 'receiver@example.com', msg.as_string())
