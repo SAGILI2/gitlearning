@@ -1,32 +1,45 @@
-from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
-db = SQLAlchemy()
+def get_hierarchy_level_based_on_expiry(contract_expiry_date_str):
+    # Convert the contract expiry date string to a date object
+    contract_expiry_date = datetime.strptime(contract_expiry_date_str, '%Y-%m-%d').date()
+    
+    # Calculate the number of weeks left until the contract expiry date
+    today = datetime.today().date()
+    days_remaining = (contract_expiry_date - today).days
+    weeks_remaining = days_remaining // 7
+    
+    # Calculate the hierarchy level based on the weeks remaining
+    level = max(0, weeks_remaining - 4)
+    
+    return level
 
-class Employee(db.Model):
-    __tablename__ = 'your_table_name'  # Replace with your actual table name
+def get_emails_up_to_level(sid, level):
+    if level < 0:
+        return []
+    
+    employee = Employee.query.filter_by(SID=sid).first()
+    if not employee:
+        return []
+    
+    emails = [employee.EMAIL]
+    
+    # If the employee has a manager and we haven't reached the desired level, get the manager's email
+    if employee.manager and level > 0:
+        emails.extend(get_emails_up_to_level(employee.MANAGERSID, level-1))
+    
+    return emails
 
-    SID = db.Column(db.String(10), primary_key=True)
-    EMAIL = db.Column(db.String(100))
-    VERUMIDENTIFIER = db.Column(db.String(30), nullable=False)
-    STATUS = db.Column(db.String(15))
-    MANAGERSID = db.Column(db.String(10), db.ForeignKey('your_table_name.SID')) # assuming self-referencing table for hierarchy
-    GTI_EMPLOYEE = db.Column(db.String(2))
-    CHIP_EMPLOYEE = db.Column(db.String(2))
-    LOB_EMPLOYEE = db.Column(db.String(2))
-    GS_REPORTS = db.Column(db.String(10))
-    VG_REPORTS = db.Column(db.String(10))
-    PG_REPORTS = db.Column(db.String(10))
-    MK_REPORTS = db.Column(db.String(10))
-    JT_REPORTS = db.Column(db.String(10))
-    PH_REPORTS = db.Column(db.String(10))
-    ML_REPORTS = db.Column(db.String(10))
-    DL_REPORTS = db.Column(db.String(10))
-    JE_REPORTS = db.Column(db.String(10))
-    AG_REPORTS = db.Column(db.String(10))
-    GS_LVL2 = db.Column(db.String(10))
-    GS_LVL3 = db.Column(db.String(10))
-    LEVELS_FROM_CEO = db.Column(db.Integer)
-    CORPORATE_TITLE = db.Column(db.String(100))
+def get_emails_based_on_expiry(sid, contract_expiry_date_str):
+    hierarchy_level = get_hierarchy_level_based_on_expiry(contract_expiry_date_str)
+    return get_emails_up_to_level(sid, hierarchy_level)
 
-    # For hierarchical relationships
-    manager = db.relationship('Employee', remote_side=[SID], backref=db.backref('subordinates', lazy='dynamic'))
+# Assuming you have initialized your Flask app and SQLAlchemy, let's test this:
+# sid = 'your_given_SID'
+# contract_expiry_date_str = '2023-12-31'
+# emails_list = get_emails_based_on_expiry(sid, contract_expiry_date_str)
+# emails_list
+
+# Note: The above test lines are commented out because we cannot execute them here. 
+# Make sure to replace 'your_given_SID' and use the function in your Flask environment.
+
