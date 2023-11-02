@@ -1,29 +1,22 @@
-import cv2
-import numpy as np
-import svgwrite
+import urllib.parse
 
-# Load image in grayscale
-image = cv2.imread('path_to_image.png', cv2.IMREAD_GRAYSCALE)
+# Load SVG content from a file
+with open('path_to_svg_image.svg', 'r') as file:
+    svg_content = file.read()
 
-# Threshold image to create binary image
-_, binary = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY_INV)
+# URL-encode the SVG content
+encoded_svg = urllib.parse.quote(svg_content)
 
-# Find contours
-contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+# Create the data URI
+data_uri = f"data:image/svg+xml;utf8,{encoded_svg}"
 
-# Create an SVG drawing
-dwg = svgwrite.Drawing('output_image.svg', profile='tiny')
-
-# Add contours to the SVG drawing
-for contour in contours:
-    for i in range(len(contour)):
-        if i == 0:
-            path = dwg.path(d='M{},{} '.format(contour[i][0][0], contour[i][0][1]),
-                            fill='none', stroke='black')
-        else:
-            path.push('L{},{} '.format(contour[i][0][0], contour[i][0][1]))
-    path.push('Z')  # Close path
-    dwg.add(path)
-
-# Save the SVG file
-dwg.save()
+# Now you can use 'data_uri' in the src attribute of an img tag
+html = f"""\
+<html>
+  <head></head>
+  <body>
+    <p>Hi, this is an inline SVG image:</p>
+    <img src="{data_uri}" alt="Inline SVG Image">
+  </body>
+</html>
+"""
