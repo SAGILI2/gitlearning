@@ -1,42 +1,29 @@
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import base64
+import cv2
+import numpy as np
+import svgwrite
 
-# Email credentials and server information
-smtp_server = 'smtp.example.com'
-smtp_user = 'your.email@example.com'
-smtp_password = 'your_password'
-from_email = smtp_user
-to_email = 'recipient@example.com'
+# Load image in grayscale
+image = cv2.imread('path_to_image.png', cv2.IMREAD_GRAYSCALE)
 
-# Read the image and encode it in Base64
-with open('path_to_image.jpg', 'rb') as image_file:
-    encoded_string = base64.b64encode(image_file.read()).decode()
+# Threshold image to create binary image
+_, binary = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY_INV)
 
-# Create the HTML message with the Base64-encoded image
-html = f"""\
-<html>
-  <head></head>
-  <body>
-    <p>Here is an image:</p>
-    <img src="data:image/jpeg;base64,{encoded_string}">
-  </body>
-</html>
-"""
+# Find contours
+contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-# Create a multipart message
-msg = MIMEMultipart()
-msg['Subject'] = 'Email with Embedded Image'
-msg['From'] = from_email
-msg['To'] = to_email
-msg.attach(MIMEText(html, 'html'))
+# Create an SVG drawing
+dwg = svgwrite.Drawing('output_image.svg', profile='tiny')
 
-# Send the email via an SMTP server
-with smtplib.SMTP(smtp_server, 587) as server:
-    server.starttls()
-    server.login(smtp_user, smtp_password)
-    server.sendmail(from_email, to_email, msg.as_string())
+# Add contours to the SVG drawing
+for contour in contours:
+    for i in range(len(contour)):
+        if i == 0:
+            path = dwg.path(d='M{},{} '.format(contour[i][0][0], contour[i][0][1]),
+                            fill='none', stroke='black')
+        else:
+            path.push('L{},{} '.format(contour[i][0][0], contour[i][0][1]))
+    path.push('Z')  # Close path
+    dwg.add(path)
 
-print('Email sent successfully!')
-
+# Save the SVG file
+dwg.save()
