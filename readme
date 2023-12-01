@@ -2,27 +2,32 @@ from sqlalchemy import func
 
 class YourTableName(db.Model):
     __tablename__ = 'your_table_name'
-    OFR_ID_TX = db.Column('OFR_ID_TX', db.String(250))
-    RULE_ID = db.Column('RULE_ID', db.Integer, primary_key=True)
-    ATTR_ID_TX = db.Column('ATTR_ID_TX', db.String(250))
-    DCAAS_ID = db.Column('DCAAS_ID', db.Integer, nullable=False)
-    FRST_ROST_ID = db.Column('FRST_ROST_ID', db.Integer)
-    ACTV_IN = db.Column('ACTV_IN', db.String(1))
-    CRE_DT = db.Column('CRE_DT', db.Date)
-    LAST_MOD_DT = db.Column('LAST_MOD_DT', db.Date)
-    CNTRT_ID_TX = db.Column('CNTRT_ID_TX', db.String(250))
-    DSTR_ID_TX = db.Column('DSTR_ID_TX', db.String(250))
+    # ... [other columns] ...
 
     @classmethod
     def get_unique_distributions_with_rule_ids(cls):
-        distribution_data = db.session.query(
+        # Subquery to select distinct rule IDs for each distribution where ACTV_IN is 'Y'
+        distinct_rules_subquery = cls.query.join(
+            Rule, Rule.RULE_ID == cls.RULE_ID
+        ).filter(
+            cls.RULE_ID != None,
+            Rule.ACTV_IN == 'Y'
+        ).with_entities(
             cls.DSTR_ID_TX,
-            func.group_concat(cls.RULE_ID).label('rule_ids')
-        ).group_by(cls.DSTR_ID_TX).all()
+            Rule.RULE_ID
+        ).distinct().subquery()
+
+        # Main query to aggregate rule IDs using listagg
+        distribution_data = cls.query.with_entities(
+            distinct_rules_subquery.c.DSTR_ID_TX,
+            func.listagg(distinct_rules_subquery.c.RULE_ID, ',').over(
+                partition_by=distinct_rules_subquery.c.DSTR_ID_TX
+            ).label('rule_ids')
+        ).group_by(distinct_rules_subquery.c.DSTR_ID_TX).all()
 
         # Formatting the result as a dictionary
         result = {
-            dist_id: [int(rule_id) for rule_id in rule_ids.split(',')] 
+            dist_id: [int(rule_id) for rule_id in rule_ids.split(',')]
             for dist_id, rule_ids in distribution_data
         }
         return result
@@ -30,5 +35,4 @@ class YourTableName(db.Model):
 # Usage
 unique_distributions = YourTableName.get_unique_distributions_with_rule_ids()
 print(unique_distributions)
-
 
