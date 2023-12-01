@@ -1,25 +1,22 @@
-@classmethod
-    def get_latest_successful_runs(cls, rule_ids):
-        from sqlalchemy import func, and_
+# Assuming get_latest_successful_runs is a method that returns the latest runs for each rule_id
+rule_ids = [2001, 2002, 2003]
+latest_runs = RuleRunLogModel.get_latest_successful_runs(rule_ids)
 
-        subquery = cls.query.with_entities(
-            cls.run_dt,
-            cls.rule_id,
-            cls.sts_cd,
-            cls.excp_cn,
-            cls.scp_cn,
-            cls.run_id,
-            func.row_number().over(
-                partition_by=[cls.rule_id, cls.sts_cd],
-                order_by=cls.run_id.desc()
-            ).label('row_num')
-        ).filter(cls.sts_cd == 'SUCCESS').subquery()
+# Calculate DQI on these latest runs
+sum_excp_cn = 0
+sum_scp_cn = 0
 
-        latest_successful_runs = db.session.query(subquery).filter(
-            and_(
-                subquery.c.row_num == 1,
-                subquery.c.rule_id.in_(rule_ids)
-            )
-        ).all()
+for run in latest_runs:
+    if run.excp_cn is not None and run.scp_cn is not None:
+        sum_excp_cn += run.excp_cn
+        sum_scp_cn += run.scp_cn
 
-        return latest_successful_runs
+# Avoid division by zero
+dqi = sum_excp_cn / sum_scp_cn if sum_scp_cn > 0 else 0
+
+# Now latest_runs can be serialized using RuleRunLogSchema
+rule_run_log_schema = RuleRunLogSchema(many=True)
+result = rule_run_log_schema.dump(latest_runs)
+
+# 'result' now contains the serialized data
+# 'dqi' contains the calculated Data Quality Index
