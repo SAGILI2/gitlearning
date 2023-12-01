@@ -1,22 +1,24 @@
-import urllib.parse
+from sqlalchemy import func
 
-# Load SVG content from a file
-with open('path_to_svg_image.svg', 'r') as file:
-    svg_content = file.read()
+def get_latest_successful_runs(rule_ids):
+    # Subquery to find the latest RUN_ID for each RULE_ID where STS_CD is 'SUCCESS'
+    latest_run_subquery = session.query(
+        RuleRunLog.RULE_ID,
+        func.max(RuleRunLog.RUN_ID).label('latest_run_id')
+    ).filter(
+        RuleRunLog.STS_CD == 'SUCCESS'
+    ).group_by(
+        RuleRunLog.RULE_ID
+    ).subquery()
 
-# URL-encode the SVG content
-encoded_svg = urllib.parse.quote(svg_content)
+    # Main query to get the rows that match the RULE_IDs and have the latest RUN_ID
+    latest_successful_runs = session.query(RuleRunLog)\
+        .join(
+            latest_run_subquery, 
+            (RuleRunLog.RULE_ID == latest_run_subquery.c.RULE_ID) &
+            (RuleRunLog.RUN_ID == latest_run_subquery.c.latest_run_id)
+        ).filter(
+            RuleRunLog.RULE_ID.in_(rule_ids)
+        ).all()
 
-# Create the data URI
-data_uri = f"data:image/svg+xml;utf8,{encoded_svg}"
-
-# Now you can use 'data_uri' in the src attribute of an img tag
-html = f"""\
-<html>
-  <head></head>
-  <body>
-    <p>Hi, this is an inline SVG image:</p>
-    <img src="{data_uri}" alt="Inline SVG Image">
-  </body>
-</html>
-"""
+    return latest_successful_runs
