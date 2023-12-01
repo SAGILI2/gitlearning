@@ -1,38 +1,11 @@
-from sqlalchemy import func
-
-class YourTableName(db.Model):
-    __tablename__ = 'your_table_name'
-    # ... [other columns] ...
-
     @classmethod
-    def get_unique_distributions_with_rule_ids(cls):
-        # Subquery to select distinct rule IDs for each distribution where ACTV_IN is 'Y'
-        distinct_rules_subquery = cls.query.join(
-            Rule, Rule.RULE_ID == cls.RULE_ID
+    def get_active_rules(cls):
+        return cls.query.join(
+            RuleDtl, cls.rule_id == RuleDtl.rule_id
         ).filter(
-            cls.RULE_ID != None,
-            Rule.ACTV_IN == 'Y'
+            cls.rule_id > 1,
+            RuleDtl.rule_actv_in == 'Y'
         ).with_entities(
-            cls.DSTR_ID_TX,
-            Rule.RULE_ID
-        ).distinct().subquery()
-
-        # Main query to aggregate rule IDs using listagg
-        distribution_data = cls.query.with_entities(
-            distinct_rules_subquery.c.DSTR_ID_TX,
-            func.listagg(distinct_rules_subquery.c.RULE_ID, ',').over(
-                partition_by=distinct_rules_subquery.c.DSTR_ID_TX
-            ).label('rule_ids')
-        ).group_by(distinct_rules_subquery.c.DSTR_ID_TX).all()
-
-        # Formatting the result as a dictionary
-        result = {
-            dist_id: [int(rule_id) for rule_id in rule_ids.split(',')]
-            for dist_id, rule_ids in distribution_data
-        }
-        return result
-
-# Usage
-unique_distributions = YourTableName.get_unique_distributions_with_rule_ids()
-print(unique_distributions)
-
+            cls.dstr_id_tx,
+            cls.rule_id
+        ).distinct().all()
