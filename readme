@@ -1,24 +1,25 @@
-from sqlalchemy import func
+@classmethod
+    def get_latest_successful_runs(cls, rule_ids):
+        from sqlalchemy import func, and_
 
-def get_latest_successful_runs(rule_ids):
-    # Subquery to find the latest RUN_ID for each RULE_ID where STS_CD is 'SUCCESS'
-    latest_run_subquery = session.query(
-        RuleRunLog.RULE_ID,
-        func.max(RuleRunLog.RUN_ID).label('latest_run_id')
-    ).filter(
-        RuleRunLog.STS_CD == 'SUCCESS'
-    ).group_by(
-        RuleRunLog.RULE_ID
-    ).subquery()
+        subquery = cls.query.with_entities(
+            cls.run_dt,
+            cls.rule_id,
+            cls.sts_cd,
+            cls.excp_cn,
+            cls.scp_cn,
+            cls.run_id,
+            func.row_number().over(
+                partition_by=[cls.rule_id, cls.sts_cd],
+                order_by=cls.run_id.desc()
+            ).label('row_num')
+        ).filter(cls.sts_cd == 'SUCCESS').subquery()
 
-    # Main query to get the rows that match the RULE_IDs and have the latest RUN_ID
-    latest_successful_runs = session.query(RuleRunLog)\
-        .join(
-            latest_run_subquery, 
-            (RuleRunLog.RULE_ID == latest_run_subquery.c.RULE_ID) &
-            (RuleRunLog.RUN_ID == latest_run_subquery.c.latest_run_id)
-        ).filter(
-            RuleRunLog.RULE_ID.in_(rule_ids)
+        latest_successful_runs = db.session.query(subquery).filter(
+            and_(
+                subquery.c.row_num == 1,
+                subquery.c.rule_id.in_(rule_ids)
+            )
         ).all()
 
-    return latest_successful_runs
+        return latest_successful_runs
