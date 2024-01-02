@@ -1,11 +1,20 @@
-    @classmethod
-    def get_active_rules(cls):
-        return cls.query.join(
-            RuleDtl, cls.rule_id == RuleDtl.rule_id
-        ).filter(
-            cls.rule_id > 1,
-            RuleDtl.rule_actv_in == 'Y'
-        ).with_entities(
-            cls.dstr_id_tx,
-            cls.rule_id
-        ).distinct().all()
+from sqlalchemy import or_, and_, func
+
+@staticmethod
+def get_distributions_with_difference_in_dqi():
+    return DcaasOfferingDistMapModel.query.filter(
+        or_(
+            func.coalesce(DcaasOfferingDistMapModel.dqi_pc, -1) != func.coalesce(DcaasOfferingDistMapModel.dcaas_dqi_pc, -1),
+            or_(
+                and_(
+                    DcaasOfferingDistMapModel.dqi_calc_dt.isnot(None),
+                    DcaasOfferingDistMapModel.dcaas_dqi_calc_dt.is_(None)
+                ),
+                and_(
+                    DcaasOfferingDistMapModel.dqi_calc_dt.is_(None),
+                    DcaasOfferingDistMapModel.dcaas_dqi_calc_dt.isnot(None)
+                ),
+                DcaasOfferingDistMapModel.dqi_calc_dt != DcaasOfferingDistMapModel.dcaas_dqi_calc_dt
+            )
+        )
+    ).order_by(DcaasOfferingDistMapModel.ofr_id_tx)
