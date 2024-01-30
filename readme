@@ -1,7 +1,13 @@
 from flask_restx import fields
 
-class StringOrInt(fields.Raw):
+class NullableList(fields.List):
+    __schema_type__ = ['array', 'null']
+    __schema_example__ = ['nullable list']
+
+    def __init__(self, cls_or_instance, **kwargs):
+        super(NullableList, self).__init__(cls_or_instance, **kwargs)
+
     def format(self, value):
-        if isinstance(value, int) or isinstance(value, str):
+        if value is None or isinstance(value, list):
             return value
-        raise ValueError("Value must be either string or integer")
+        raise ValueError("Field must be a list or null.")
