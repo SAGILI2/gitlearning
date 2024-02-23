@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import shutil
+import time
 
 def convert_to_sqlite(source_folder, target_folder):
     # Recreate the target folder structure
@@ -24,11 +25,11 @@ def convert_to_sqlite(source_folder, target_folder):
 
                 # Store data in SQLite database
                 conn = sqlite3.connect(target_file_path + '.sqlite')
-                c = conn.cursor()
-                c.execute('''CREATE TABLE IF NOT EXISTS data (content TEXT)''')
-                c.execute('''INSERT INTO data VALUES (?)''', (data,))
-                conn.commit()
-                conn.close()
+                with conn:
+                    c = conn.cursor()
+                    c.execute('''CREATE TABLE IF NOT EXISTS data (content TEXT)''')
+                    c.execute('''INSERT INTO data VALUES (?)''', (data,))
+                time.sleep(0.1)  # Introduce a delay between operations
 
             else:
                 # Just copy SQLite files to target folder
@@ -37,64 +38,58 @@ def convert_to_sqlite(source_folder, target_folder):
 
 def create_database(db_path):
     conn = sqlite3.connect(db_path)
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS files (
-                    id INTEGER PRIMARY KEY,
-                    path TEXT,
-                    is_directory INTEGER,
-                    content BLOB
-                 )''')
-    conn.commit()
-    conn.close()
-
+    with conn:
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS files (
+                        id INTEGER PRIMARY KEY,
+                        path TEXT,
+                        is_directory INTEGER,
+                        content BLOB
+                     )''')
 
 def insert_files_into_database(folder_path, parent_id, db_path):
     conn = sqlite3.connect(db_path)
-    c = conn.cursor()
+    with conn:
+        c = conn.cursor()
 
-    for item in os.listdir(folder_path):
-        item_path = os.path.join(folder_path, item)
-        is_directory = int(os.path.isdir(item_path))
+        for item in os.listdir(folder_path):
+            item_path = os.path.join(folder_path, item)
+            is_directory = int(os.path.isdir(item_path))
 
-        with open(item_path, 'rb') as f:
-            content = f.read()
+            with open(item_path, 'rb') as f:
+                content = f.read()
 
-        c.execute('''INSERT INTO files (path, is_directory, content) VALUES (?, ?, ?)''', (item_path, is_directory, content))
-        file_id = c.lastrowid
+            c.execute('''INSERT INTO files (path, is_directory, content) VALUES (?, ?, ?)''', (item_path, is_directory, content))
+            file_id = c.lastrowid
 
-        if is_directory:
-            insert_files_into_database(item_path, file_id, db_path)
-
-    conn.commit()
-    conn.close()
+            if is_directory:
+                insert_files_into_database(item_path, file_id, db_path)
 
 
 def recreate_folders_and_files(db_path, target_folder):
     conn = sqlite3.connect(db_path)
-    c = conn.cursor()
+    with conn:
+        c = conn.cursor()
 
-    c.execute('''SELECT id, path, is_directory, content FROM files''')
-    files = c.fetchall()
+        c.execute('''SELECT id, path, is_directory, content FROM files''')
+        files = c.fetchall()
 
-    for file in files:
-        file_id, file_path, is_directory, content = file
+        for file in files:
+            file_id, file_path, is_directory, content = file
 
-        # Reconstruct the absolute file path in the target folder
-        relative_path = os.path.relpath(file_path, '/path/to/source_folder')  # Replace '/path/to/source_folder' with your actual source folder path
-        target_file_path = os.path.join(target_folder, relative_path)
+            # Reconstruct the absolute file path in the target folder
+            relative_path = os.path.relpath(file_path, '/path/to/source_folder')  # Replace '/path/to/source_folder' with your actual source folder path
+            target_file_path = os.path.join(target_folder, relative_path)
 
-        if is_directory:
-            # Create directory if it doesn't exist
-            os.makedirs(target_file_path, exist_ok=True)
-        else:
-            # Create directory for the file if it doesn't exist
-            os.makedirs(os.path.dirname(target_file_path), exist_ok=True)
-            # Write the file content
-            with open(target_file_path, 'wb') as f:
-                f.write(content)
-
-    conn.close()
-
+            if is_directory:
+                # Create directory if it doesn't exist
+                os.makedirs(target_file_path, exist_ok=True)
+            else:
+                # Create directory for the file if it doesn't exist
+                os.makedirs(os.path.dirname(target_file_path), exist_ok=True)
+                # Write the file content
+                with open(target_file_path, 'wb') as f:
+                    f.write(content)
 
 if __name__ == "__main__":
     source_folder = '/path/to/source_folder'
