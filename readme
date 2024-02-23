@@ -1,107 +1,40 @@
 import os
 import sqlite3
-import shutil
-import time
+import qrcode
+import zipfile
 
-def convert_to_sqlite(source_folder, target_folder):
-    # Recreate the target folder structure
-    if not os.path.exists(target_folder):
-        os.makedirs(target_folder)
+def convert_zip_to_sqlite_and_qr(zip_file_path, db_file_path, qr_code_path):
+    # Step 1: Convert zip file to SQLite
+    with open(zip_file_path, 'rb') as f:
+        zip_data = f.read()
 
-    for root, dirs, files in os.walk(source_folder):
-        for file in files:
-            source_file_path = os.path.join(root, file)
-            relative_path = os.path.relpath(source_file_path, source_folder)
-            target_file_path = os.path.join(target_folder, relative_path)
+    # Create SQLite database and store zip data
+    conn = sqlite3.connect(db_file_path)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS zip_data (
+                    id INTEGER PRIMARY KEY,
+                    data BLOB
+                 )''')
+    c.execute('''INSERT INTO zip_data (data) VALUES (?)''', (sqlite3.Binary(zip_data),))
+    conn.commit()
+    conn.close()
 
-            # Create directories if they don't exist
-            os.makedirs(os.path.dirname(target_file_path), exist_ok=True)
+    # Step 2: Convert SQLite file to QR code
+    with open(db_file_path, 'rb') as f:
+        sqlite_data = f.read()
 
-            # If file is not sqlite, convert and store
-            if not file.endswith('.sqlite'):
-                # Convert file to sqlite
-                with open(source_file_path, 'r', encoding='utf-8') as f:  # Specify encoding here
-                    data = f.read()
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+    qr.add_data(sqlite_data)
+    qr.make(fit=True)
 
-                # Store data in SQLite database
-                conn = sqlite3.connect(target_file_path + '.sqlite')
-                with conn:
-                    c = conn.cursor()
-                    c.execute('''CREATE TABLE IF NOT EXISTS data (content TEXT)''')
-                    c.execute('''INSERT INTO data VALUES (?)''', (data,))
-                time.sleep(0.1)  # Introduce a delay between operations
-
-            else:
-                # Just copy SQLite files to target folder
-                shutil.copy2(source_file_path, target_file_path)
-
-
-def create_database(db_path):
-    conn = sqlite3.connect(db_path)
-    with conn:
-        c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS files (
-                        id INTEGER PRIMARY KEY,
-                        path TEXT,
-                        is_directory INTEGER,
-                        content BLOB
-                     )''')
-
-def insert_files_into_database(folder_path, parent_id, db_path):
-    conn = sqlite3.connect(db_path)
-    with conn:
-        c = conn.cursor()
-
-        for item in os.listdir(folder_path):
-            item_path = os.path.join(folder_path, item)
-            is_directory = int(os.path.isdir(item_path))
-
-            with open(item_path, 'rb') as f:
-                content = f.read()
-
-            c.execute('''INSERT INTO files (path, is_directory, content) VALUES (?, ?, ?)''', (item_path, is_directory, content))
-            file_id = c.lastrowid
-
-            if is_directory:
-                insert_files_into_database(item_path, file_id, db_path)
-
-
-def recreate_folders_and_files(db_path, target_folder):
-    conn = sqlite3.connect(db_path)
-    with conn:
-        c = conn.cursor()
-
-        c.execute('''SELECT id, path, is_directory, content FROM files''')
-        files = c.fetchall()
-
-        for file in files:
-            file_id, file_path, is_directory, content = file
-
-            # Reconstruct the absolute file path in the target folder
-            relative_path = os.path.relpath(file_path, '/path/to/source_folder')  # Replace '/path/to/source_folder' with your actual source folder path
-            target_file_path = os.path.join(target_folder, relative_path)
-
-            if is_directory:
-                # Create directory if it doesn't exist
-                os.makedirs(target_file_path, exist_ok=True)
-            else:
-                # Create directory for the file if it doesn't exist
-                os.makedirs(os.path.dirname(target_file_path), exist_ok=True)
-                # Write the file content
-                with open(target_file_path, 'wb') as f:
-                    f.write(content)
+    # Save QR code image
+    qr_code_file_path = os.path.join(qr_code_path, 'sqlite_file.png')
+    qr.make_image(fill_color="black", back_color="white").save(qr_code_file_path)
 
 if __name__ == "__main__":
-    source_folder = '/path/to/source_folder'
-    target_folder = '/path/to/target_folder'
-    db_path = '/path/to/database.db'
+    zip_file_path = '/path/to/zip_file.zip'
+    db_file_path = '/path/to/database.db'
+    qr_code_path = '/path/to/qr_code_folder'
 
-    # Convert files to SQLite and store in target_folder
-    convert_to_sqlite(source_folder, target_folder)
-
-    # Create database and insert files into it
-    create_database(db_path)
-    insert_files_into_database(source_folder, None, db_path)
-
-    # Recreate folders and files from database
-    recreate_folders_and_files(db_path, target_folder)
+    # Convert zip file to SQLite and then to QR code
+    convert_zip_to_sqlite_and_qr(zip_file_path, db_file_path, qr_code_path)
